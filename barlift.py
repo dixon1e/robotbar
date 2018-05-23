@@ -379,12 +379,17 @@ class rest_api_handler(object):
 # Issue the relay command "UP"
 #
     def on(self):
-        dbg("Raising The Bar...")
-	GPIO.output(Relay_C, GPIO.LOW)
-	GPIO.output(Relay_B, GPIO.LOW)
-	GPIO.output(Relay_A, GPIO.LOW)
-        sleep(self.raise_time)
-	GPIO.output(Relay_C, GPIO.HIGH)
+        if self.on_cmd == 'lift':
+                dbg("Raising The Bar...")
+	        GPIO.output(Relay_C, GPIO.LOW)
+	        GPIO.output(Relay_B, GPIO.LOW)
+	        GPIO.output(Relay_A, GPIO.LOW)
+                print(self.on_cmd, self.off_cmd)
+                sleep(self.raise_time)
+	        GPIO.output(Relay_C, GPIO.HIGH)
+        if self.on_cmd == 'lights':
+                dbg("Turning on lights...")
+	        GPIO.output(20, GPIO.LOW)
         return 200
 
 ###############
@@ -392,12 +397,17 @@ class rest_api_handler(object):
 # Issue the relay command "DOWN"
 #
     def off(self):
-        dbg("Lowering The Bar...")
-	GPIO.output(Relay_C, GPIO.LOW)
-	GPIO.output(Relay_B, GPIO.HIGH)
-	GPIO.output(Relay_A, GPIO.HIGH)
-        sleep(self.lower_time)
-	GPIO.output(Relay_C, GPIO.HIGH)
+        if self.off_cmd == 'lift':
+                dbg("Lowering The Bar...")
+	        GPIO.output(Relay_C, GPIO.LOW)
+	        GPIO.output(Relay_B, GPIO.HIGH)
+	        GPIO.output(Relay_A, GPIO.HIGH)
+                print(self.on_cmd, self.off_cmd)
+                sleep(self.lower_time)
+	        GPIO.output(Relay_C, GPIO.HIGH)
+        if self.off_cmd == 'lights':
+                dbg("Turning off lights...")
+	        GPIO.output(20, GPIO.HIGH)
         return 200
 
 
@@ -416,8 +426,8 @@ class rest_api_handler(object):
 # 16 switches it can control. Only the first 16 elements of the FAUXMOS
 # list will be used.
 FAUXMOS = [
-    ['bar lift', rest_api_handler('http://192.168.5.4/ha-api?cmd=on&a=lift', 'http://192.168.5.4/ha-api?cmd=off&a=lift', 3.0, 4.0), 32768],
-    ['bar lights', rest_api_handler('http://192.168.5.4/ha-api?cmd=on&a=lights', 'http://192.168.5.4/ha-api?cmd=off&a=lights'), 32769],
+    ['bar lift', rest_api_handler('lift', 'lift', 3.0, 4.0), 32768],
+    ['bar lights', rest_api_handler('lights', 'lights'), 32769],
 ]
 
 # Set up our singleton for polling the sockets for data ready
@@ -446,8 +456,10 @@ Relay_channel = [26, 19, 13, 6, 12, 7, 20, 21]
 Relay_C = 26
 Relay_B = 19
 Relay_A = 13
-
-Relay_OUTLET_1 = 21
+Relay_Outlet_1 = 21
+Relay_Outlet_2 = 20
+Relay_Outlet_3 = 7
+Relay_Outlet_4 = 12
 
 GPIO.setmode(GPIO.BCM)
 for i in range(0, len(Relay_channel)):
@@ -456,8 +468,10 @@ for i in range(0, len(Relay_channel)):
 
 # Initial Conditions
 GPIO.output(Relay_C,        GPIO.HIGH)
-GPIO.output(Relay_OUTLET_1, GPIO.LOW)
-
+GPIO.output(Relay_Outlet_1, GPIO.LOW)
+GPIO.output(Relay_Outlet_2, GPIO.HIGH)
+GPIO.output(Relay_Outlet_3, GPIO.HIGH)
+GPIO.output(Relay_Outlet_4, GPIO.HIGH)
 
 def main():
         dbg("Entering main loop\n")
