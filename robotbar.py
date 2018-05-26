@@ -39,6 +39,19 @@ import uuid
 import RPi.GPIO as GPIO
 
 
+# LIFT RELAYS
+# Setup all GPIO output for Relay
+Relay_channel = [26, 19, 13, 6, 12, 7, 20, 21]
+        
+# The following are the pins controlling the Relays for Polarity
+Relay_C = 26
+Relay_B = 19
+Relay_A = 13
+Relay_Outlet_1 = 21
+Relay_Outlet_2 = 20
+Relay_Outlet_3 = 7
+Relay_Outlet_4 = 12
+
 
 # This XML is the minimum needed to define one of our virtual switches
 # to the Amazon Echo
@@ -379,7 +392,7 @@ class rest_api_handler(object):
 # Issue the relay command "UP"
 #
     def on(self):
-        if self.on_cmd == 'lift':
+        if self.on_cmd == 'party':
                 dbg("Raising The Bar...")
 	        GPIO.output(Relay_C, GPIO.LOW)
 	        GPIO.output(Relay_B, GPIO.LOW)
@@ -389,7 +402,13 @@ class rest_api_handler(object):
 	        GPIO.output(Relay_C, GPIO.HIGH)
         if self.on_cmd == 'lights':
                 dbg("Turning on lights...")
-	        GPIO.output(20, GPIO.LOW)
+	        GPIO.output(Relay_Outlet_1, GPIO.LOW)
+        if self.on_cmd == 'accents':
+                dbg("Turning on accents...")
+	        GPIO.output(Relay_Outlet_1, GPIO.LOW)
+        if self.on_cmd == 'disco':
+                dbg("Turning on disco ball...")
+	        GPIO.output(Relay_Outlet_1, GPIO.LOW)
         return 200
 
 ###############
@@ -397,7 +416,7 @@ class rest_api_handler(object):
 # Issue the relay command "DOWN"
 #
     def off(self):
-        if self.off_cmd == 'lift':
+        if self.off_cmd == 'party':
                 dbg("Lowering The Bar...")
 	        GPIO.output(Relay_C, GPIO.LOW)
 	        GPIO.output(Relay_B, GPIO.HIGH)
@@ -407,6 +426,12 @@ class rest_api_handler(object):
 	        GPIO.output(Relay_C, GPIO.HIGH)
         if self.off_cmd == 'lights':
                 dbg("Turning off lights...")
+	        GPIO.output(20, GPIO.HIGH)
+        if self.off_cmd == 'accents':
+                dbg("Turning off accents...")
+	        GPIO.output(20, GPIO.HIGH)
+        if self.off_cmd == 'disco':
+                dbg("Turning off disco ball...")
 	        GPIO.output(20, GPIO.HIGH)
         return 200
 
@@ -426,8 +451,10 @@ class rest_api_handler(object):
 # 16 switches it can control. Only the first 16 elements of the FAUXMOS
 # list will be used.
 FAUXMOS = [
-    ['bar lift', rest_api_handler('lift', 'lift', 3.0, 4.0), 32768],
-    ['bar lights', rest_api_handler('lights', 'lights'), 32769],
+    ['the party', rest_api_handler('party', 'party', 3.0, 4.0), 32768],
+    ['lights', rest_api_handler('lights', 'lights'), 32769],
+    ['accents', rest_api_handler('accents', 'accents'), 32770],
+    ['disco ball', rest_api_handler('disco', 'disco'), 32771],
 ]
 
 # Set up our singleton for polling the sockets for data ready
@@ -448,18 +475,6 @@ for one_faux in FAUXMOS:
         one_faux.append(0)
     switch = fauxmo(one_faux[0], u, p, None, one_faux[2], action_handler = one_faux[1])
 
-# LIFT RELAYS
-# Setup all GPIO output for Relay
-Relay_channel = [26, 19, 13, 6, 12, 7, 20, 21]
-        
-# The following are the pins controlling the Relays for Polarity
-Relay_C = 26
-Relay_B = 19
-Relay_A = 13
-Relay_Outlet_1 = 21
-Relay_Outlet_2 = 20
-Relay_Outlet_3 = 7
-Relay_Outlet_4 = 12
 
 GPIO.setmode(GPIO.BCM)
 for i in range(0, len(Relay_channel)):
