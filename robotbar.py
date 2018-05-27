@@ -388,7 +388,7 @@ class rest_api_handler(object):
         self.lower_time = lower_time
         dbg("Initialize")
 
-    def bar_raise(something, duration):
+    def bar_raise(self, duration):
         """thread worker function"""
         sys.stdout.flush()
         print 'Raise Bar: %s' % duration
@@ -401,7 +401,7 @@ class rest_api_handler(object):
         print 'Completed'
         return
     
-    def bar_lower(something, duration):
+    def bar_lower(self, duration):
         """thread worker function"""
         sys.stdout.flush()
         print 'Lower Bar: %s' % duration
@@ -450,24 +450,16 @@ class rest_api_handler(object):
     def off(self):
         if self.off_cmd == 'party':
             dbg("Lowering The Roof...")
-            GPIO.output(Relay_C, GPIO.LOW)
-            GPIO.output(Relay_B, GPIO.HIGH)
-            GPIO.output(Relay_A, GPIO.HIGH)
             GPIO.output(Relay_Outlet_1, GPIO.HIGH)
             GPIO.output(Relay_Outlet_2, GPIO.HIGH)
             GPIO.output(Relay_Outlet_3, GPIO.HIGH)
             GPIO.output(Relay_Outlet_4, GPIO.HIGH)
-            print(self.on_cmd, self.off_cmd)
-            sleep(self.lower_time)
-            GPIO.output(Relay_C, GPIO.HIGH)
+            p = threading.Thread(target=self.bar_lower, args=[self.lower_time])
+            p.start()
         if self.off_cmd == 'bar':
             dbg("Lowering The Bar...")
-            GPIO.output(Relay_C, GPIO.LOW)
-            GPIO.output(Relay_B, GPIO.HIGH)
-            GPIO.output(Relay_A, GPIO.HIGH)
-            print(self.on_cmd, self.off_cmd)
-            sleep(self.lower_time)
-            GPIO.output(Relay_C, GPIO.HIGH)
+            p = threading.Thread(target=self.bar_lower, args=[self.lower_time])
+            p.start()
         if self.off_cmd == 'lights':
             dbg("Turning off lights...")
             GPIO.output(Relay_Outlet_1, GPIO.HIGH)
@@ -495,11 +487,11 @@ class rest_api_handler(object):
 # 16 switches it can control. Only the first 16 elements of the FAUXMOS
 # list will be used.
 FAUXMOS = [
-    ['party',      rest_api_handler('party',   'party', 3.0, 4.0), 32768],
-    ['bar',        rest_api_handler('bar',     'bar',   3.0, 4.0), 32769],
-    ['bar lights', rest_api_handler('lights',  'lights'),          32770],
-    ['accents',    rest_api_handler('accents', 'accents'),         32771],
-    ['disco ball', rest_api_handler('disco',   'disco'),           32772],
+    ['party',      rest_api_handler('party',   'party', 10.0, 11.0), 32768],
+    ['bar',        rest_api_handler('bar',     'bar',   10.0, 11.0), 32769],
+    ['lights',     rest_api_handler('lights',  'lights'),            32770],
+    ['accents',    rest_api_handler('accents', 'accents'),           32771],
+    ['disco ball', rest_api_handler('disco',   'disco'),             32772],
 ]
 
 # Set up our singleton for polling the sockets for data ready
