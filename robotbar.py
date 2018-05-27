@@ -469,6 +469,8 @@ class rest_api_handler(object):
         if self.off_cmd == 'disco':
             dbg("Turning off disco ball...")
             GPIO.output(Relay_Outlet_3, GPIO.HIGH)
+        if self.off_cmd == 'motor':
+            GPIO.output(Relay_C, GPIO.HIGH)
         return 200
 
 
@@ -492,6 +494,7 @@ FAUXMOS = [
     ['lights',     rest_api_handler('lights',  'lights'),            32770],
     ['accents',    rest_api_handler('accents', 'accents'),           32771],
     ['disco ball', rest_api_handler('disco',   'disco'),             32772],
+    ['motor',      rest_api_handler('motor',   'motor'),             32773],
 ]
 
 # Set up our singleton for polling the sockets for data ready
