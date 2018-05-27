@@ -37,6 +37,7 @@ from time import sleep
 import urllib
 import uuid
 import RPi.GPIO as GPIO
+import threading
 
 
 # LIFT RELAYS
@@ -387,39 +388,58 @@ class rest_api_handler(object):
         self.lower_time = lower_time
         dbg("Initialize")
 
+    def bar_raise(duration):
+        """thread worker function"""
+        sys.stdout.flush()
+        print 'Raise Bar: %s' % duration
+    	GPIO.output(Relay_C, GPIO.LOW)
+    	GPIO.output(Relay_B, GPIO.LOW)
+    	GPIO.output(Relay_A, GPIO.LOW)
+        sleep(duration)
+    	GPIO.output(Relay_C, GPIO.HIGH)
+        sys.stdout.flush()
+        print 'Completed'
+        return
+    
+    def bar_lower(duration):
+        """thread worker function"""
+        sys.stdout.flush()
+        print 'Lower Bar: %s' % duration
+    	GPIO.output(Relay_C, GPIO.LOW)
+    	GPIO.output(Relay_B, GPIO.HIGH)
+    	GPIO.output(Relay_A, GPIO.HIGH)
+        sleep(duration)
+    	GPIO.output(Relay_C, GPIO.HIGH)
+        sys.stdout.flush()
+        print 'Completed'
+        return
+
+
 ###############
 # DCD & JASON
 # Issue the relay command "UP"
 #
     def on(self):
         if self.on_cmd == 'party':
-                dbg("Raising The Roof...")
-	        GPIO.output(Relay_C, GPIO.LOW)
-	        GPIO.output(Relay_B, GPIO.LOW)
-	        GPIO.output(Relay_A, GPIO.LOW)
+            dbg("Raising The Roof...")
 	        GPIO.output(Relay_Outlet_1, GPIO.LOW)
 	        GPIO.output(Relay_Outlet_2, GPIO.LOW)
 	        GPIO.output(Relay_Outlet_3, GPIO.LOW)
 	        GPIO.output(Relay_Outlet_4, GPIO.LOW)
-                print(self.on_cmd, self.off_cmd)
-                sleep(self.raise_time)
-	        GPIO.output(Relay_C, GPIO.HIGH)
+            p = threading.Thread(target=bar_raise, args=(self.raise_time,))
+            p.start()
         if self.on_cmd == 'bar':
-                dbg("Raising The Bar...")
-	        GPIO.output(Relay_C, GPIO.LOW)
-	        GPIO.output(Relay_B, GPIO.LOW)
-	        GPIO.output(Relay_A, GPIO.LOW)
-                print(self.on_cmd, self.off_cmd)
-                sleep(self.lower_time)
-	        GPIO.output(Relay_C, GPIO.HIGH)
+            dbg("Raising The Bar...")
+            p = threading.Thread(target=bar_raise, args=(self.raise_time,))
+            p.start()
         if self.on_cmd == 'lights':
-                dbg("Turning on lights...")
+            dbg("Turning on lights...")
 	        GPIO.output(Relay_Outlet_1, GPIO.LOW)
         if self.on_cmd == 'accents':
-                dbg("Turning on accents...")
+            dbg("Turning on accents...")
 	        GPIO.output(Relay_Outlet_2, GPIO.LOW)
         if self.on_cmd == 'disco':
-                dbg("Turning on disco ball...")
+            dbg("Turning on disco ball...")
 	        GPIO.output(Relay_Outlet_3, GPIO.LOW)
         return 200
 
@@ -429,7 +449,7 @@ class rest_api_handler(object):
 #
     def off(self):
         if self.off_cmd == 'party':
-                dbg("Lowering The Roof...")
+            dbg("Lowering The Roof...")
 	        GPIO.output(Relay_C, GPIO.LOW)
 	        GPIO.output(Relay_B, GPIO.HIGH)
 	        GPIO.output(Relay_A, GPIO.HIGH)
@@ -437,25 +457,25 @@ class rest_api_handler(object):
 	        GPIO.output(Relay_Outlet_2, GPIO.HIGH)
 	        GPIO.output(Relay_Outlet_3, GPIO.HIGH)
 	        GPIO.output(Relay_Outlet_4, GPIO.HIGH)
-                print(self.on_cmd, self.off_cmd)
-                sleep(self.lower_time)
+            print(self.on_cmd, self.off_cmd)
+            sleep(self.lower_time)
 	        GPIO.output(Relay_C, GPIO.HIGH)
         if self.off_cmd == 'bar':
-                dbg("Lowering The Bar...")
+            dbg("Lowering The Bar...")
 	        GPIO.output(Relay_C, GPIO.LOW)
 	        GPIO.output(Relay_B, GPIO.HIGH)
 	        GPIO.output(Relay_A, GPIO.HIGH)
-                print(self.on_cmd, self.off_cmd)
-                sleep(self.lower_time)
+            print(self.on_cmd, self.off_cmd)
+            sleep(self.lower_time)
 	        GPIO.output(Relay_C, GPIO.HIGH)
         if self.off_cmd == 'lights':
-                dbg("Turning off lights...")
+            dbg("Turning off lights...")
 	        GPIO.output(Relay_Outlet_1, GPIO.HIGH)
         if self.off_cmd == 'accents':
-                dbg("Turning off accents...")
+            dbg("Turning off accents...")
 	        GPIO.output(Relay_Outlet_2, GPIO.HIGH)
         if self.off_cmd == 'disco':
-                dbg("Turning off disco ball...")
+            dbg("Turning off disco ball...")
 	        GPIO.output(Relay_Outlet_3, GPIO.HIGH)
         return 200
 
@@ -475,11 +495,11 @@ class rest_api_handler(object):
 # 16 switches it can control. Only the first 16 elements of the FAUXMOS
 # list will be used.
 FAUXMOS = [
-    ['party', rest_api_handler('party', 'party', 3.0, 4.0), 32768],
-    ['bar', rest_api_handler('bar', 'bar', 3.0, 4.0), 32772],
-    ['bar lights', rest_api_handler('lights', 'lights'), 32769],
-    ['accents', rest_api_handler('accents', 'accents'), 32770],
-    ['disco ball', rest_api_handler('disco', 'disco'), 32771],
+    ['party',      rest_api_handler('party',   'party', 3.0, 4.0), 32768],
+    ['bar',        rest_api_handler('bar',     'bar',   3.0, 4.0), 32769],
+    ['bar lights', rest_api_handler('lights',  'lights'),          32770],
+    ['accents',    rest_api_handler('accents', 'accents'),         32771],
+    ['disco ball', rest_api_handler('disco',   'disco'),           32772],
 ]
 
 # Set up our singleton for polling the sockets for data ready
