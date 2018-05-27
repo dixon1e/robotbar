@@ -388,28 +388,28 @@ class rest_api_handler(object):
         self.lower_time = lower_time
         dbg("Initialize")
 
-    def bar_raise(duration):
+    def bar_raise(something, duration):
         """thread worker function"""
         sys.stdout.flush()
         print 'Raise Bar: %s' % duration
-    	GPIO.output(Relay_C, GPIO.LOW)
-    	GPIO.output(Relay_B, GPIO.LOW)
-    	GPIO.output(Relay_A, GPIO.LOW)
+        GPIO.output(Relay_C, GPIO.LOW)
+        GPIO.output(Relay_B, GPIO.LOW)
+        GPIO.output(Relay_A, GPIO.LOW)
         sleep(duration)
-    	GPIO.output(Relay_C, GPIO.HIGH)
+        GPIO.output(Relay_C, GPIO.HIGH)
         sys.stdout.flush()
         print 'Completed'
         return
     
-    def bar_lower(duration):
+    def bar_lower(something, duration):
         """thread worker function"""
         sys.stdout.flush()
         print 'Lower Bar: %s' % duration
-    	GPIO.output(Relay_C, GPIO.LOW)
-    	GPIO.output(Relay_B, GPIO.HIGH)
-    	GPIO.output(Relay_A, GPIO.HIGH)
+        GPIO.output(Relay_C, GPIO.LOW)
+        GPIO.output(Relay_B, GPIO.HIGH)
+        GPIO.output(Relay_A, GPIO.HIGH)
         sleep(duration)
-    	GPIO.output(Relay_C, GPIO.HIGH)
+        GPIO.output(Relay_C, GPIO.HIGH)
         sys.stdout.flush()
         print 'Completed'
         return
@@ -422,25 +422,25 @@ class rest_api_handler(object):
     def on(self):
         if self.on_cmd == 'party':
             dbg("Raising The Roof...")
-	        GPIO.output(Relay_Outlet_1, GPIO.LOW)
-	        GPIO.output(Relay_Outlet_2, GPIO.LOW)
-	        GPIO.output(Relay_Outlet_3, GPIO.LOW)
-	        GPIO.output(Relay_Outlet_4, GPIO.LOW)
-            p = threading.Thread(target=bar_raise, args=(self.raise_time,))
+            GPIO.output(Relay_Outlet_1, GPIO.LOW)
+            GPIO.output(Relay_Outlet_2, GPIO.LOW)
+            GPIO.output(Relay_Outlet_3, GPIO.LOW)
+            GPIO.output(Relay_Outlet_4, GPIO.LOW)
+            p = threading.Thread(target=self.bar_raise, args=[self.raise_time])
             p.start()
         if self.on_cmd == 'bar':
             dbg("Raising The Bar...")
-            p = threading.Thread(target=bar_raise, args=(self.raise_time,))
+            p = threading.Thread(target=self.bar_raise, args=[self.raise_time])
             p.start()
         if self.on_cmd == 'lights':
             dbg("Turning on lights...")
-	        GPIO.output(Relay_Outlet_1, GPIO.LOW)
+            GPIO.output(Relay_Outlet_1, GPIO.LOW)
         if self.on_cmd == 'accents':
             dbg("Turning on accents...")
-	        GPIO.output(Relay_Outlet_2, GPIO.LOW)
+            GPIO.output(Relay_Outlet_2, GPIO.LOW)
         if self.on_cmd == 'disco':
             dbg("Turning on disco ball...")
-	        GPIO.output(Relay_Outlet_3, GPIO.LOW)
+            GPIO.output(Relay_Outlet_3, GPIO.LOW)
         return 200
 
 ###############
@@ -450,33 +450,33 @@ class rest_api_handler(object):
     def off(self):
         if self.off_cmd == 'party':
             dbg("Lowering The Roof...")
-	        GPIO.output(Relay_C, GPIO.LOW)
-	        GPIO.output(Relay_B, GPIO.HIGH)
-	        GPIO.output(Relay_A, GPIO.HIGH)
-	        GPIO.output(Relay_Outlet_1, GPIO.HIGH)
-	        GPIO.output(Relay_Outlet_2, GPIO.HIGH)
-	        GPIO.output(Relay_Outlet_3, GPIO.HIGH)
-	        GPIO.output(Relay_Outlet_4, GPIO.HIGH)
+            GPIO.output(Relay_C, GPIO.LOW)
+            GPIO.output(Relay_B, GPIO.HIGH)
+            GPIO.output(Relay_A, GPIO.HIGH)
+            GPIO.output(Relay_Outlet_1, GPIO.HIGH)
+            GPIO.output(Relay_Outlet_2, GPIO.HIGH)
+            GPIO.output(Relay_Outlet_3, GPIO.HIGH)
+            GPIO.output(Relay_Outlet_4, GPIO.HIGH)
             print(self.on_cmd, self.off_cmd)
             sleep(self.lower_time)
-	        GPIO.output(Relay_C, GPIO.HIGH)
+            GPIO.output(Relay_C, GPIO.HIGH)
         if self.off_cmd == 'bar':
             dbg("Lowering The Bar...")
-	        GPIO.output(Relay_C, GPIO.LOW)
-	        GPIO.output(Relay_B, GPIO.HIGH)
-	        GPIO.output(Relay_A, GPIO.HIGH)
+            GPIO.output(Relay_C, GPIO.LOW)
+            GPIO.output(Relay_B, GPIO.HIGH)
+            GPIO.output(Relay_A, GPIO.HIGH)
             print(self.on_cmd, self.off_cmd)
             sleep(self.lower_time)
-	        GPIO.output(Relay_C, GPIO.HIGH)
+            GPIO.output(Relay_C, GPIO.HIGH)
         if self.off_cmd == 'lights':
             dbg("Turning off lights...")
-	        GPIO.output(Relay_Outlet_1, GPIO.HIGH)
+            GPIO.output(Relay_Outlet_1, GPIO.HIGH)
         if self.off_cmd == 'accents':
             dbg("Turning off accents...")
-	        GPIO.output(Relay_Outlet_2, GPIO.HIGH)
+            GPIO.output(Relay_Outlet_2, GPIO.HIGH)
         if self.off_cmd == 'disco':
             dbg("Turning off disco ball...")
-	        GPIO.output(Relay_Outlet_3, GPIO.HIGH)
+            GPIO.output(Relay_Outlet_3, GPIO.HIGH)
         return 200
 
 
@@ -523,8 +523,8 @@ for one_faux in FAUXMOS:
 
 GPIO.setmode(GPIO.BCM)
 for i in range(0, len(Relay_channel)):
-        dbg('Setup Channel: %d' % Relay_channel[i])
-        GPIO.setup(Relay_channel[i], GPIO.OUT, initial=GPIO.LOW)
+    dbg('Setup Channel: %d' % Relay_channel[i])
+    GPIO.setup(Relay_channel[i], GPIO.OUT, initial=GPIO.LOW)
 
 # Initial Conditions
 GPIO.output(Relay_C,        GPIO.HIGH)
@@ -534,34 +534,34 @@ GPIO.output(Relay_Outlet_3, GPIO.HIGH)
 GPIO.output(Relay_Outlet_4, GPIO.HIGH)
 
 def main():
-        dbg("Entering main loop\n")
+    dbg("Entering main loop\n")
         
-        while True:
-            try:
-                # Allow time for a ctrl-c to stop the process
-                p.poll(100)
-                sleep(0.1)
-            except Exception, e:
-                dbg(e)
-                destroy()
-                break
+    while True:
+        try:
+        # Allow time for a ctrl-c to stop the process
+            p.poll(100)
+            sleep(0.1)
+        except Exception, e:
+            dbg(e)
+            destroy()
+            break
 
 def destroy():
-	GPIO.output(Relay_channel, GPIO.LOW)
-	GPIO.cleanup()
+    GPIO.output(Relay_channel, GPIO.LOW)
+    GPIO.cleanup()
 
 ##########
 # Main Program Entry Point
 #
 if __name__ == '__main__':
 
-        if len(sys.argv) > 1 and sys.argv[1] == '-d':
-            DEBUG = True
-        else:
-            DEBUG = False
+    if len(sys.argv) > 1 and sys.argv[1] == '-d':
+        DEBUG = True
+    else:
+        DEBUG = False
 
-	try:
-		main()
-	except KeyboardInterrupt:
-		destroy()
+    try:
+        main()
+    except KeyboardInterrupt:
+        destroy()
 
