@@ -3,13 +3,12 @@ Derived code from fauxmo to create a robotic bar that rises up out of a cabinet.
 
 ## TODO
 * Add a state machine for cool down control
-* Add lighting
-* Add "Booze Facts" random factoid
-* Add Bartender's Guide Voice Recipes
-* Add Music DJ Capability
-* Add Fog Machine
-* Add IFTTT custom voice commands
-* Add a Disco Ball, because Disco Ball
+* Add status update cron job
+* Add code update cron job
+
+## Things to enhance the experience
+* Bartender's Guide Voice Recipes
+* Music DJ Capability
 
 # Original fauxmo
 **Emulated Belkin WeMo devices that work with the Amazon Echo**

@@ -393,22 +393,34 @@ class rest_api_handler(object):
 #
     def on(self):
         if self.on_cmd == 'party':
+                dbg("Raising The Roof...")
+	        GPIO.output(Relay_C, GPIO.LOW)
+	        GPIO.output(Relay_B, GPIO.LOW)
+	        GPIO.output(Relay_A, GPIO.LOW)
+	        GPIO.output(Relay_Outlet_1, GPIO.LOW)
+	        GPIO.output(Relay_Outlet_2, GPIO.LOW)
+	        GPIO.output(Relay_Outlet_3, GPIO.LOW)
+	        GPIO.output(Relay_Outlet_4, GPIO.LOW)
+                print(self.on_cmd, self.off_cmd)
+                sleep(self.raise_time)
+	        GPIO.output(Relay_C, GPIO.HIGH)
+        if self.on_cmd == 'bar':
                 dbg("Raising The Bar...")
 	        GPIO.output(Relay_C, GPIO.LOW)
 	        GPIO.output(Relay_B, GPIO.LOW)
 	        GPIO.output(Relay_A, GPIO.LOW)
                 print(self.on_cmd, self.off_cmd)
-                sleep(self.raise_time)
+                sleep(self.lower_time)
 	        GPIO.output(Relay_C, GPIO.HIGH)
         if self.on_cmd == 'lights':
                 dbg("Turning on lights...")
 	        GPIO.output(Relay_Outlet_1, GPIO.LOW)
         if self.on_cmd == 'accents':
                 dbg("Turning on accents...")
-	        GPIO.output(Relay_Outlet_1, GPIO.LOW)
+	        GPIO.output(Relay_Outlet_2, GPIO.LOW)
         if self.on_cmd == 'disco':
                 dbg("Turning on disco ball...")
-	        GPIO.output(Relay_Outlet_1, GPIO.LOW)
+	        GPIO.output(Relay_Outlet_3, GPIO.LOW)
         return 200
 
 ###############
@@ -417,6 +429,18 @@ class rest_api_handler(object):
 #
     def off(self):
         if self.off_cmd == 'party':
+                dbg("Lowering The Roof...")
+	        GPIO.output(Relay_C, GPIO.LOW)
+	        GPIO.output(Relay_B, GPIO.HIGH)
+	        GPIO.output(Relay_A, GPIO.HIGH)
+	        GPIO.output(Relay_Outlet_1, GPIO.HIGH)
+	        GPIO.output(Relay_Outlet_2, GPIO.HIGH)
+	        GPIO.output(Relay_Outlet_3, GPIO.HIGH)
+	        GPIO.output(Relay_Outlet_4, GPIO.HIGH)
+                print(self.on_cmd, self.off_cmd)
+                sleep(self.lower_time)
+	        GPIO.output(Relay_C, GPIO.HIGH)
+        if self.off_cmd == 'bar':
                 dbg("Lowering The Bar...")
 	        GPIO.output(Relay_C, GPIO.LOW)
 	        GPIO.output(Relay_B, GPIO.HIGH)
@@ -426,13 +450,13 @@ class rest_api_handler(object):
 	        GPIO.output(Relay_C, GPIO.HIGH)
         if self.off_cmd == 'lights':
                 dbg("Turning off lights...")
-	        GPIO.output(20, GPIO.HIGH)
+	        GPIO.output(Relay_Outlet_1, GPIO.HIGH)
         if self.off_cmd == 'accents':
                 dbg("Turning off accents...")
-	        GPIO.output(20, GPIO.HIGH)
+	        GPIO.output(Relay_Outlet_2, GPIO.HIGH)
         if self.off_cmd == 'disco':
                 dbg("Turning off disco ball...")
-	        GPIO.output(20, GPIO.HIGH)
+	        GPIO.output(Relay_Outlet_3, GPIO.HIGH)
         return 200
 
 
@@ -451,8 +475,9 @@ class rest_api_handler(object):
 # 16 switches it can control. Only the first 16 elements of the FAUXMOS
 # list will be used.
 FAUXMOS = [
-    ['the party', rest_api_handler('party', 'party', 3.0, 4.0), 32768],
-    ['lights', rest_api_handler('lights', 'lights'), 32769],
+    ['party', rest_api_handler('party', 'party', 3.0, 4.0), 32768],
+    ['bar', rest_api_handler('bar', 'bar', 3.0, 4.0), 32772],
+    ['bar lights', rest_api_handler('lights', 'lights'), 32769],
     ['accents', rest_api_handler('accents', 'accents'), 32770],
     ['disco ball', rest_api_handler('disco', 'disco'), 32771],
 ]
@@ -483,7 +508,7 @@ for i in range(0, len(Relay_channel)):
 
 # Initial Conditions
 GPIO.output(Relay_C,        GPIO.HIGH)
-GPIO.output(Relay_Outlet_1, GPIO.LOW)
+GPIO.output(Relay_Outlet_1, GPIO.HIGH)
 GPIO.output(Relay_Outlet_2, GPIO.HIGH)
 GPIO.output(Relay_Outlet_3, GPIO.HIGH)
 GPIO.output(Relay_Outlet_4, GPIO.HIGH)
