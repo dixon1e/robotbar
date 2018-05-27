@@ -5,6 +5,7 @@ Derived code from fauxmo to create a robotic bar that rises up out of a cabinet.
 * Add a state machine for cool down control
 * Add status update cron job
 * Add code update cron job
+* Deploy again using Raspbian Lite
 
 ## Things to enhance the experience
 * Bartender's Guide Voice Recipes
