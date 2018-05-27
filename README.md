@@ -2,6 +2,7 @@
 Derived code from fauxmo to create a robotic bar that rises up out of a cabinet.
 
 ## TODO
+* Add a STOP command to halt the linear actuator [DONE]
 * Add a state machine for cool down control
 * Add status update cron job
 * Add code update cron job
