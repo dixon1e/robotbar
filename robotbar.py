@@ -73,10 +73,13 @@ SETUP_XML = """<?xml version="1.0"?>
 
 DEBUG = True
 
-def dbg(msg):
+def dbg(msg,e=None):
     global DEBUG
     if DEBUG:
-        print msg
+        if e != None:
+            print msg,e
+        else:
+            print msg
         sys.stdout.flush()
 
 
@@ -414,6 +417,15 @@ class rest_api_handler(object):
         print 'Completed'
         return
 
+    def lights_off(self, duration):
+        """thread worker function"""
+        sys.stdout.flush()
+        print 'Lights off delay: %s' % duration
+        sleep(duration)
+        GPIO.output(Relay_Outlet_1, GPIO.HIGH)
+        sys.stdout.flush()
+        print 'Completed'
+        return
 
 ###############
 # DCD & JASON
@@ -426,12 +438,12 @@ class rest_api_handler(object):
             GPIO.output(Relay_Outlet_2, GPIO.LOW)
             GPIO.output(Relay_Outlet_3, GPIO.LOW)
             GPIO.output(Relay_Outlet_4, GPIO.LOW)
-            p = threading.Thread(target=self.bar_raise, args=[self.raise_time])
-            p.start()
-        if self.on_cmd == 'bar':
+            p_on = threading.Thread(target=self.bar_raise, args=[self.raise_time])
+            p_on.start()
+        if self.on_cmd == 'tank':
             dbg("Raising The Bar...")
-            p = threading.Thread(target=self.bar_raise, args=[self.raise_time])
-            p.start()
+            b_on = threading.Thread(target=self.bar_raise, args=[self.raise_time])
+            b_on.start()
         if self.on_cmd == 'lights':
             dbg("Turning on lights...")
             GPIO.output(Relay_Outlet_1, GPIO.LOW)
@@ -450,16 +462,18 @@ class rest_api_handler(object):
     def off(self):
         if self.off_cmd == 'party':
             dbg("Lowering The Roof...")
-            GPIO.output(Relay_Outlet_1, GPIO.HIGH)
             GPIO.output(Relay_Outlet_2, GPIO.HIGH)
             GPIO.output(Relay_Outlet_3, GPIO.HIGH)
             GPIO.output(Relay_Outlet_4, GPIO.HIGH)
-            p = threading.Thread(target=self.bar_lower, args=[self.lower_time])
-            p.start()
-        if self.off_cmd == 'bar':
+            lights_off_time = self.lower_time - 2
+            l_off = threading.Thread(target=self.lights_off, args=[lights_off_time])
+            l_off.start()
+            p_dn = threading.Thread(target=self.bar_lower, args=[self.lower_time])
+            p_dn.start()
+        if self.off_cmd == 'tank':
             dbg("Lowering The Bar...")
-            p = threading.Thread(target=self.bar_lower, args=[self.lower_time])
-            p.start()
+            b_dn = threading.Thread(target=self.bar_lower, args=[self.lower_time])
+            b_dn.start()
         if self.off_cmd == 'lights':
             dbg("Turning off lights...")
             GPIO.output(Relay_Outlet_1, GPIO.HIGH)
@@ -489,8 +503,8 @@ class rest_api_handler(object):
 # 16 switches it can control. Only the first 16 elements of the FAUXMOS
 # list will be used.
 FAUXMOS = [
-    ['party',      rest_api_handler('party',   'party', 10.0, 11.0), 32768],
-    ['bar',        rest_api_handler('bar',     'bar',   10.0, 11.0), 32769],
+    ['party',      rest_api_handler('party',   'party', 72.0, 75.0), 32768],
+    ['tank',       rest_api_handler('tank',    'tank',  72.0, 75.0), 32769],
     ['lights',     rest_api_handler('lights',  'lights'),            32770],
     ['accents',    rest_api_handler('accents', 'accents'),           32771],
     ['disco ball', rest_api_handler('disco',   'disco'),             32772],
