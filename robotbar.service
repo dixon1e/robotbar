@@ -7,7 +7,7 @@ Wants=network.target
 Type=simple
 WorkingDirectory=/home/pi/working/robotbar
 # Fix the paths below:
-ExecStart=/home/pi/working/robotbar/venv/bin/python /home/pi/working/robotbar/robotbar.py
+ExecStart=/home/pi/working/robotbar/venv3/bin/python /home/pi/working/robotbar/robotbar.py
 Restart=on-failure
 User=root
 

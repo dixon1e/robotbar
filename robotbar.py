@@ -39,6 +39,7 @@ import uuid
 import RPi.GPIO as GPIO
 import threading
 
+time.sleep(10)
 
 # LIFT RELAYS
 # Setup all GPIO output for Relay
