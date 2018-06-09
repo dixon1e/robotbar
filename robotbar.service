@@ -1,0 +1,15 @@
+[Unit]
+Description=RobotBar
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/pi/working/robotbar
+# Fix the paths below:
+ExecStart=/home/pi/working/robotbar/venv/bin/python /home/pi/working/robotbar/robotbar.py
+Restart=on-failure
+User=root
+
+[Install]
+WantedBy=multi-user.target

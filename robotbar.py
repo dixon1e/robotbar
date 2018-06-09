@@ -77,9 +77,9 @@ def dbg(msg,e=None):
     global DEBUG
     if DEBUG:
         if e != None:
-            print msg,e
+            print(msg,e)
         else:
-            print msg
+            print(msg)
         sys.stdout.flush()
 
 
@@ -120,7 +120,10 @@ class poller:
         for one_ready in ready:
             target = self.targets.get(one_ready[0], None)
             if target:
-                target.do_read(one_ready[0])
+                try:
+                    target.do_read(one_ready[0])
+                except:
+                    print("Failed to read 126")
  
 
 # Base class for a generic UPnP device. This is far from complete
@@ -177,7 +180,12 @@ class upnp_device(object):
             self.poller.add(self, client_socket.fileno())
             self.client_sockets[client_socket.fileno()] = client_socket
         else:
-            data, sender = self.client_sockets[fileno].recvfrom(4096)
+            try:
+                data, sender = self.client_sockets[fileno].recvfrom(4096)
+                data = data.decode()
+                print("data",data)
+            except:
+                print("first bytes read from socket")
             if not data:
                 self.poller.remove(self, fileno)
                 del(self.client_sockets[fileno])
@@ -209,7 +217,10 @@ class upnp_device(object):
                 message += "%s\r\n" % header
         message += "\r\n"
         temp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        temp_socket.sendto(message, destination)
+        try:
+            temp_socket.sendto(message.encode(), destination)
+        except:
+            print("Failed to send 218")
  
 
 # This subclass does the bulk of the work to mimic a WeMo switch on the network.
@@ -250,7 +261,10 @@ class fauxmo(upnp_device):
                        "CONNECTION: close\r\n"
                        "\r\n"
                        "%s" % (len(xml), date_str, xml))
-            socket.send(message)
+            try:
+                socket.send(message.encode())
+            except:
+                print("Failed to send 262")
         elif data.find('SOAPACTION: "urn:Belkin:service:basicevent:1#SetBinaryState"') != -1:
             success = False
             if data.find('<BinaryState>1</BinaryState>') != -1:
@@ -279,7 +293,7 @@ class fauxmo(upnp_device):
                            "CONNECTION: close\r\n"
                            "\r\n"
                            "%s" % (len(soap), date_str, soap))
-                socket.send(message)
+                socket.send(message.encode())
         else:
             dbg(data)
 
@@ -306,10 +320,29 @@ class upnp_broadcast_responder(object):
         self.devices = []
 
     def init_socket(self):
+        print("Init Socket")
         ok = True
         self.ip = '239.255.255.250'
         self.port = 1900
         try:
+
+            """
+            self.ssock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            self.ssock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+            reuseport = getattr(socket, "SO_REUSEPORT", None)
+            if reuseport:
+                self.ssock.setsockopt(socket.SOL_SOCKET, reuseport, 1)
+
+            self.ssock.bind(("", 1900))
+
+            group = socket.inet_aton('239.255.255.250')
+            self.mreq = struct.pack('4sL', group, socket.INADDR_ANY)
+            self.ssock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, self.mreq)
+            """
+
+
+
             #This is needed to join a multicast group
             self.mreq = struct.pack("4sl",socket.inet_aton(self.ip),socket.INADDR_ANY)
 
@@ -319,17 +352,16 @@ class upnp_broadcast_responder(object):
 
             try:
                 self.ssock.bind(('',self.port))
-            except Exception, e:
+            except Exception as e:
                 dbg("WARNING: Failed to bind %s:%d: %s" , (self.ip,self.port,e))
                 ok = False
 
             try:
                 self.ssock.setsockopt(socket.IPPROTO_IP,socket.IP_ADD_MEMBERSHIP,self.mreq)
-            except Exception, e:
+            except Exception as e:
                 dbg('WARNING: Failed to join multicast group:',e)
                 ok = False
-
-        except Exception, e:
+        except Exception as e:
             dbg("Failed to initialize UPnP sockets:",e)
             return False
         if ok:
@@ -339,7 +371,11 @@ class upnp_broadcast_responder(object):
         return self.ssock.fileno()
 
     def do_read(self, fileno):
-        data, sender = self.recvfrom(1024)
+        try:
+            data, sender = self.recvfrom(1024)
+            data = data.decode()
+        except:
+            print("another receive exception")
         if data:
             if data.find('M-SEARCH') == 0 and data.find('urn:Belkin:device:**') != -1:
                 for device in self.devices:
@@ -359,10 +395,13 @@ class upnp_broadcast_responder(object):
 
         try:
             if ready:
-                return self.ssock.recvfrom(size)
+                try:
+                    return self.ssock.recvfrom(size)
+                except:
+                    print("ready failed")
             else:
                 return False, False
-        except Exception, e:
+        except Exception as e:
             dbg(e)
             return False, False
 
@@ -394,37 +433,37 @@ class rest_api_handler(object):
     def bar_raise(self, duration):
         """thread worker function"""
         sys.stdout.flush()
-        print 'Raise Bar: %s' % duration
+        print('Raise Bar: %s' % duration)
         GPIO.output(Relay_C, GPIO.LOW)
         GPIO.output(Relay_B, GPIO.LOW)
         GPIO.output(Relay_A, GPIO.LOW)
         sleep(duration)
         GPIO.output(Relay_C, GPIO.HIGH)
         sys.stdout.flush()
-        print 'Completed'
+        print('Completed')
         return
     
     def bar_lower(self, duration):
         """thread worker function"""
         sys.stdout.flush()
-        print 'Lower Bar: %s' % duration
+        print('Lower Bar: %s' % duration)
         GPIO.output(Relay_C, GPIO.LOW)
         GPIO.output(Relay_B, GPIO.HIGH)
         GPIO.output(Relay_A, GPIO.HIGH)
         sleep(duration)
         GPIO.output(Relay_C, GPIO.HIGH)
         sys.stdout.flush()
-        print 'Completed'
+        print('Completed')
         return
 
     def lights_off(self, duration):
         """thread worker function"""
         sys.stdout.flush()
-        print 'Lights off delay: %s' % duration
+        print('Lights off delay: %s' % duration)
         sleep(duration)
         GPIO.output(Relay_Outlet_1, GPIO.HIGH)
         sys.stdout.flush()
-        print 'Completed'
+        print('Completed')
         return
 
 ###############
@@ -550,7 +589,8 @@ def main():
         # Allow time for a ctrl-c to stop the process
             p.poll(100)
             sleep(0.1)
-        except Exception, e:
+        except Exception as e:
+            print("main loop exception")
             dbg(e)
             destroy()
             break
@@ -563,12 +603,15 @@ def destroy():
 # Main Program Entry Point
 #
 if __name__ == '__main__':
+    dbg("Main Entry Point")
 
-    if len(sys.argv) > 1 and sys.argv[1] == '-d':
-        DEBUG = True
-    else:
-        DEBUG = False
+#    if len(sys.argv) > 1 and sys.argv[1] == '-d':
+#        DEBUG = True
+#    else:
+#        DEBUG = False
 
+    DEBUG = True
+    dbg("Try Main ...")
     try:
         main()
     except KeyboardInterrupt:
