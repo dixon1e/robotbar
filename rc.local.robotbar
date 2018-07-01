@@ -17,7 +17,6 @@ if [ "$_IP" ]; then
   printf "My IP address is %s\n" "$_IP"
 fi
 
-cd /home/pi/working/robotbar
-./run.sh &
+python /home/pi/working/robotbar/robotbar.py &
 
 exit 0

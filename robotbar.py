@@ -41,6 +41,7 @@ import threading
 
 time.sleep(10)
 
+
 # LIFT RELAYS
 # Setup all GPIO output for Relay
 Relay_channel = [26, 19, 13, 6, 12, 7, 20, 21]
@@ -74,15 +75,11 @@ SETUP_XML = """<?xml version="1.0"?>
 
 DEBUG = True
 
-def dbg(msg,e=None):
+def dbg(msg):
     global DEBUG
     if DEBUG:
-        if e != None:
-            print(msg,e)
-        else:
-            print(msg)
+        print(msg)
         sys.stdout.flush()
-
 
 # A simple utility class to wait for incoming data to be
 # ready on a socket.
@@ -121,10 +118,10 @@ class poller:
         for one_ready in ready:
             target = self.targets.get(one_ready[0], None)
             if target:
-                try:
-                    target.do_read(one_ready[0])
-                except:
-                    print("Failed to read 126")
+                target.do_read(one_ready[0])
+ 
+
+# Base class for a generic UPnP device. This is far from complete
  
 
 # Base class for a generic UPnP device. This is far from complete
@@ -181,12 +178,7 @@ class upnp_device(object):
             self.poller.add(self, client_socket.fileno())
             self.client_sockets[client_socket.fileno()] = client_socket
         else:
-            try:
-                data, sender = self.client_sockets[fileno].recvfrom(4096)
-                data = data.decode()
-                print("data",data)
-            except:
-                print("first bytes read from socket")
+            data, sender = self.client_sockets[fileno].recvfrom(4096)
             if not data:
                 self.poller.remove(self, fileno)
                 del(self.client_sockets[fileno])
@@ -218,10 +210,7 @@ class upnp_device(object):
                 message += "%s\r\n" % header
         message += "\r\n"
         temp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        try:
-            temp_socket.sendto(message.encode(), destination)
-        except:
-            print("Failed to send 218")
+        temp_socket.sendto(message, destination)
  
 
 # This subclass does the bulk of the work to mimic a WeMo switch on the network.
@@ -262,10 +251,7 @@ class fauxmo(upnp_device):
                        "CONNECTION: close\r\n"
                        "\r\n"
                        "%s" % (len(xml), date_str, xml))
-            try:
-                socket.send(message.encode())
-            except:
-                print("Failed to send 262")
+            socket.send(message)
         elif data.find('SOAPACTION: "urn:Belkin:service:basicevent:1#SetBinaryState"') != -1:
             success = False
             if data.find('<BinaryState>1</BinaryState>') != -1:
@@ -294,7 +280,7 @@ class fauxmo(upnp_device):
                            "CONNECTION: close\r\n"
                            "\r\n"
                            "%s" % (len(soap), date_str, soap))
-                socket.send(message.encode())
+                socket.send(message)
         else:
             dbg(data)
 
@@ -312,38 +298,19 @@ class fauxmo(upnp_device):
 # Note that this is currently hard-coded to recognize only the search
 # from the Amazon Echo for WeMo devices. In particular, it does not
 # support the more common root device general search. The Echo
-# doesn't search for root devices.
 
 class upnp_broadcast_responder(object):
+
     TIMEOUT = 0
 
     def __init__(self):
         self.devices = []
 
     def init_socket(self):
-        print("Init Socket")
         ok = True
         self.ip = '239.255.255.250'
         self.port = 1900
         try:
-
-            """
-            self.ssock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            self.ssock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-
-            reuseport = getattr(socket, "SO_REUSEPORT", None)
-            if reuseport:
-                self.ssock.setsockopt(socket.SOL_SOCKET, reuseport, 1)
-
-            self.ssock.bind(("", 1900))
-
-            group = socket.inet_aton('239.255.255.250')
-            self.mreq = struct.pack('4sL', group, socket.INADDR_ANY)
-            self.ssock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, self.mreq)
-            """
-
-
-
             #This is needed to join a multicast group
             self.mreq = struct.pack("4sl",socket.inet_aton(self.ip),socket.INADDR_ANY)
 
@@ -353,16 +320,17 @@ class upnp_broadcast_responder(object):
 
             try:
                 self.ssock.bind(('',self.port))
-            except Exception as e:
+            except Exception, e:
                 dbg("WARNING: Failed to bind %s:%d: %s" , (self.ip,self.port,e))
                 ok = False
 
             try:
                 self.ssock.setsockopt(socket.IPPROTO_IP,socket.IP_ADD_MEMBERSHIP,self.mreq)
-            except Exception as e:
+            except Exception, e:
                 dbg('WARNING: Failed to join multicast group:',e)
                 ok = False
-        except Exception as e:
+
+        except Exception, e:
             dbg("Failed to initialize UPnP sockets:",e)
             return False
         if ok:
@@ -372,11 +340,7 @@ class upnp_broadcast_responder(object):
         return self.ssock.fileno()
 
     def do_read(self, fileno):
-        try:
-            data, sender = self.recvfrom(1024)
-            data = data.decode()
-        except:
-            print("another receive exception")
+        data, sender = self.recvfrom(1024)
         if data:
             if data.find('M-SEARCH') == 0 and data.find('urn:Belkin:device:**') != -1:
                 for device in self.devices:
@@ -396,13 +360,10 @@ class upnp_broadcast_responder(object):
 
         try:
             if ready:
-                try:
-                    return self.ssock.recvfrom(size)
-                except:
-                    print("ready failed")
+                return self.ssock.recvfrom(size)
             else:
                 return False, False
-        except Exception as e:
+        except Exception, e:
             dbg(e)
             return False, False
 
@@ -434,37 +395,45 @@ class rest_api_handler(object):
     def bar_raise(self, duration):
         """thread worker function"""
         sys.stdout.flush()
-        print('Raise Bar: %s' % duration)
+        print 'Raise Bar: %s' % duration
         GPIO.output(Relay_C, GPIO.LOW)
         GPIO.output(Relay_B, GPIO.LOW)
         GPIO.output(Relay_A, GPIO.LOW)
         sleep(duration)
         GPIO.output(Relay_C, GPIO.HIGH)
         sys.stdout.flush()
-        print('Completed')
+        print 'Completed'
         return
     
     def bar_lower(self, duration):
         """thread worker function"""
         sys.stdout.flush()
-        print('Lower Bar: %s' % duration)
+        print 'Lower Bar: %s' % duration
         GPIO.output(Relay_C, GPIO.LOW)
         GPIO.output(Relay_B, GPIO.HIGH)
         GPIO.output(Relay_A, GPIO.HIGH)
+        b = threading.Thread(target=detect_bottom)
+        b.start()
         sleep(duration)
+        stop_thread = True
         GPIO.output(Relay_C, GPIO.HIGH)
+        b.join()
+        stop_thread    = False
         sys.stdout.flush()
-        print('Completed')
+        print 'Completed'
         return
 
-    def lights_off(self, duration):
+    def outlets_off(self, duration):
         """thread worker function"""
         sys.stdout.flush()
-        print('Lights off delay: %s' % duration)
-        sleep(duration)
+        print 'Turn Off Outlets In: %s' % duration
+        sleep(duration + 3)
         GPIO.output(Relay_Outlet_1, GPIO.HIGH)
+        GPIO.output(Relay_Outlet_2, GPIO.HIGH)
+        GPIO.output(Relay_Outlet_3, GPIO.HIGH)
+        GPIO.output(Relay_Outlet_4, GPIO.HIGH)
         sys.stdout.flush()
-        print('Completed')
+        print 'Completed'
         return
 
 ###############
@@ -478,12 +447,12 @@ class rest_api_handler(object):
             GPIO.output(Relay_Outlet_2, GPIO.LOW)
             GPIO.output(Relay_Outlet_3, GPIO.LOW)
             GPIO.output(Relay_Outlet_4, GPIO.LOW)
-            p_on = threading.Thread(target=self.bar_raise, args=[self.raise_time])
-            p_on.start()
-        if self.on_cmd == 'tank':
+            p = threading.Thread(target=self.bar_raise, args=[self.raise_time])
+            p.start()
+        if self.on_cmd == 'bar':
             dbg("Raising The Bar...")
-            b_on = threading.Thread(target=self.bar_raise, args=[self.raise_time])
-            b_on.start()
+            p = threading.Thread(target=self.bar_raise, args=[self.raise_time])
+            p.start()
         if self.on_cmd == 'lights':
             dbg("Turning on lights...")
             GPIO.output(Relay_Outlet_1, GPIO.LOW)
@@ -502,18 +471,16 @@ class rest_api_handler(object):
     def off(self):
         if self.off_cmd == 'party':
             dbg("Lowering The Roof...")
-            GPIO.output(Relay_Outlet_2, GPIO.HIGH)
-            GPIO.output(Relay_Outlet_3, GPIO.HIGH)
-            GPIO.output(Relay_Outlet_4, GPIO.HIGH)
-            lights_off_time = self.lower_time - 2
-            l_off = threading.Thread(target=self.lights_off, args=[lights_off_time])
-            l_off.start()
-            p_dn = threading.Thread(target=self.bar_lower, args=[self.lower_time])
-            p_dn.start()
-        if self.off_cmd == 'tank':
+            o = threading.Thread(target=self.outlets_off, args=[self.lower_time])
+            o.start()
+            p = threading.Thread(target=self.bar_lower, args=[self.lower_time])
+            p.start()
+            # p.join()
+        if self.off_cmd == 'bar':
             dbg("Lowering The Bar...")
-            b_dn = threading.Thread(target=self.bar_lower, args=[self.lower_time])
-            b_dn.start()
+            p = threading.Thread(target=self.bar_lower, args=[self.lower_time])
+            p.start()
+            # p.join()
         if self.off_cmd == 'lights':
             dbg("Turning off lights...")
             GPIO.output(Relay_Outlet_1, GPIO.HIGH)
@@ -543,8 +510,8 @@ class rest_api_handler(object):
 # 16 switches it can control. Only the first 16 elements of the FAUXMOS
 # list will be used.
 FAUXMOS = [
-    ['party',      rest_api_handler('party',   'party', 72.0, 75.0), 32768],
-    ['tank',       rest_api_handler('tank',    'tank',  72.0, 75.0), 32769],
+    ['party',      rest_api_handler('party',   'party', 90.0, 91.0), 32768],
+    ['bar',        rest_api_handler('bar',     'bar',   90.0, 91.0), 32769],
     ['lights',     rest_api_handler('lights',  'lights'),            32770],
     ['accents',    rest_api_handler('accents', 'accents'),           32771],
     ['disco ball', rest_api_handler('disco',   'disco'),             32772],
@@ -569,18 +536,39 @@ for one_faux in FAUXMOS:
         one_faux.append(0)
     switch = fauxmo(one_faux[0], u, p, None, one_faux[2], action_handler = one_faux[1])
 
-
+# Initialize the GPIO system
 GPIO.setmode(GPIO.BCM)
 for i in range(0, len(Relay_channel)):
     dbg('Setup Channel: %d' % Relay_channel[i])
     GPIO.setup(Relay_channel[i], GPIO.OUT, initial=GPIO.LOW)
 
-# Initial Conditions
+# Initial Our Specific GPIO Conditions
 GPIO.output(Relay_C,        GPIO.HIGH)
 GPIO.output(Relay_Outlet_1, GPIO.HIGH)
 GPIO.output(Relay_Outlet_2, GPIO.HIGH)
 GPIO.output(Relay_Outlet_3, GPIO.HIGH)
-GPIO.output(Relay_Outlet_4, GPIO.HIGH)
+GPIO.output(Relay_Outlet_4, GPIO.LOW)
+
+# Bottom Switch
+max_lower_time = 90
+Bottom_Switch  = 17
+stop_thread    = False
+GPIO.setup(Bottom_Switch, GPIO.IN)
+
+def detect_bottom():
+    while True:
+        if stop_thread:
+            break
+        sleep(0.05)
+        switch_state = GPIO.input(Bottom_Switch)
+        # dbg("+++: ", switch_state)
+        if switch_state == 0:
+        # debounce
+           sleep(0.05) 
+           if switch_state == 0:
+               GPIO.output(Relay_C, GPIO.HIGH)
+               dbg("Switch Closed Motor Stop")
+               break
 
 def main():
     dbg("Entering main loop\n")
@@ -590,8 +578,7 @@ def main():
         # Allow time for a ctrl-c to stop the process
             p.poll(100)
             sleep(0.1)
-        except Exception as e:
-            print("main loop exception")
+        except Exception, e:
             dbg(e)
             destroy()
             break
@@ -604,17 +591,13 @@ def destroy():
 # Main Program Entry Point
 #
 if __name__ == '__main__':
-    dbg("Main Entry Point")
 
-#    if len(sys.argv) > 1 and sys.argv[1] == '-d':
-#        DEBUG = True
-#    else:
-#        DEBUG = False
+    if len(sys.argv) > 1 and sys.argv[1] == '-d':
+        DEBUG = True
+    else:
+        DEBUG = False
 
-    DEBUG = True
-    dbg("Try Main ...")
     try:
         main()
     except KeyboardInterrupt:
         destroy()
-
