@@ -1,4 +1,7 @@
 #!/bin/sh -e
+exec 2> /tmp/rc.local.log      # send stderr from rc.local to a log file
+exec 1>&2                      # send stdout to the same log file
+set -x                         # tell sh to display commands before execution
 #
 # rc.local
 #
@@ -17,6 +20,13 @@ if [ "$_IP" ]; then
   printf "My IP address is %s\n" "$_IP"
 fi
 
-python /home/pi/working/robotbar/robotbar.py &
+# wait for network interface come up
+sleep 10
+
+# Reverse tunnel for maintenance
+sudo -u pi /usr/bin/ssh -f -N -T -R 22099:localhost:22 eechoe@159.203.174.49
+
+# Start the robotbar in the background
+sudo -u pi /home/pi/working/robotbar/run.sh
 
 exit 0
