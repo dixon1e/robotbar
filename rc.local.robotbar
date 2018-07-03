@@ -24,7 +24,7 @@ fi
 sleep 10
 
 # Reverse tunnel for maintenance
-sudo -u pi /usr/bin/ssh -f -N -T -R 22099:localhost:22 eechoe@159.203.174.49
+sudo -u pi /usr/bin/ssh -f -N -T -R 22099:localhost:22 eechoe@reverse
 
 # Start the robotbar in the background
 sudo -u pi /home/pi/working/robotbar/run.sh
