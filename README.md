@@ -1,8 +1,7 @@
-# Robotobar
+# Robotbar
 Derived code from fauxmo to create a robotic bar that rises up out of a cabinet.
 
 ## TODO
-* Add a STOP command to halt the linear actuator [DONE]
 * Add a state machine for cool down control
 * Add status update cron job
 * Add code update cron job
@@ -57,5 +56,3 @@ also do this from the Echo App web page.
 - https://developer.amazon.com/appsandservices/solutions/alexa/alexa-skills-kit
 - https://en.wikipedia.org/wiki/Universal_Plug_and_Play
 - http://www.makermusings.com/2015/07/19/home-automation-with-amazon-echo-apps-part-1/
-
-![](/images/fig1.png)
