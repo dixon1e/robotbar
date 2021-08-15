@@ -57,3 +57,5 @@ also do this from the Echo App web page.
 - https://developer.amazon.com/appsandservices/solutions/alexa/alexa-skills-kit
 - https://en.wikipedia.org/wiki/Universal_Plug_and_Play
 - http://www.makermusings.com/2015/07/19/home-automation-with-amazon-echo-apps-part-1/
+
+![](./fig1.png)
