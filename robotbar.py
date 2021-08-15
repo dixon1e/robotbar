@@ -34,7 +34,7 @@ import struct
 import sys
 import time
 from time import sleep
-import urllib
+# import urllib
 import uuid
 import RPi.GPIO as GPIO
 import threading
